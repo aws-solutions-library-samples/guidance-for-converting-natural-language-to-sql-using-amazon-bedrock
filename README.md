@@ -16,7 +16,7 @@
    - [Step 4: Setup Bedrock Agent and Action Group](#step-4-setup-bedrock-agent-and-action-group)
    - [Step 5: Create an Alias](#step-5-create-an-alias)
 9. [Step 6: Testing the Bedrock Agent](#testing-the-bedrock-agent)
-10. [Step 7: Setup and Run Streamlit App on EC2 (Optional)](#step-7-setup-and-run-streamlit-app-on-ec2-optional)
+10. [Step 7: Setting up and running the Streamlit app locally (Optional)](#step-7-setup-and-run-streamlit-app-locally-optional)
 11. [Cleanup](#cleanup)
 12. [Security](#security)
 13. [License](#license)
