@@ -655,49 +655,46 @@ Here are examples of Amazon Athena queries <athena_examples>.
     4. Get me data of all procedures that were not insured, with customer names.
        
 
-## Step 7: Setup and Run Streamlit App on EC2 (Optional)
-1. **Obtain CF template to launch the streamlit app**: Download the Cloudformation template from [here](https://github.com/build-on-aws/bedrock-agent-txt2sql/blob/main/cfn/3-ec2-streamlit-template.yaml). This template will be used to deploy an EC2 instance that has the Streamlit code to run the UI.
+***(If you would like to have a UI setup with this project, continue to step 7)***
 
+## Step 7: Setting up and running the Streamlit app locally
 
-2. **Edit the app to update agent IDs**:
-   - Navigate to the EC2 instance management console. Under instances, you should see `EC2-Streamlit-App`. Select the checkbox next to it, then connect to it via `EC2 Instance Connect`.
+- You will need to have an `agent alias ID`, along with the `agent ID` for this step. Go to the Bedrock management console, then select the agent. Copy the ***Agent ID*** from the top-right of the **Agent overview** section. Then, scroll down to **Aliases** and select ***Create***. Name the alias `a1`, then create the agent. Remeber to save the ***Alias ID*** generated.
+![Diagram](images/6a.png) 
+- now, navigate back to the IDE you used to open up the project.
+     
+-  **Navigate to streamlit_app Directory**:
 
-   ![ec2 connect clip](images/ec2_connect.gif)
+   - Navigate to the directory containing the Streamlit app: ***bedrock-agents-infer-models-main/streamlit_app***
+    
 
-  - If you see a message that says **EC2 Instance Connect service IP addresses are not authorized**, then you will need to re-deploy the template and select the correct CIDR range for the EC2 based on the region you are in. This will allow you to cannect to the EC2 instance via SSH. By default, it is the allowed CIDR range for **us-west-2** region. However, if you are in the **us-east-1** region for example, the CIDR range will need to be **18.206.107.24/29** when deploying the AWS Cloudformation template. Additional CIDR ranges for each region can be found [here](https://raw.githubusercontent.com/joetek/aws-ip-ranges-json/refs/heads/master/ip-ranges-ec2-instance-connect.json).  
+-  **Update Configuration**:
+   - Open the ***invoke_agent.py*** file.
 
-  ![ec2 ssh error](images/ec2_ssh_error.gif)
+   - On line ***19 & 20***, update the ***agentId*** and ***agentAliasId*** variables with the appropriate values, then save it.
 
-   - Next, use the following command  to edit the invoke_agent.py file:
+![Diagram](images/6b.png) 
+-  **Install Streamlit** (if not already installed):
+   - Run the following command to install all of the dependencies needed:
+
      ```bash
-     sudo vi app/streamlit_app/invoke_agent.py
+     pip install streamlit boto3 pandas
      ```
 
-   - Press ***i*** to go into edit mode. Then, update the ***AGENT ID*** and ***Agent ALIAS ID*** values. 
-   
-   ![file_edit](images/file_edit.png)
-   
-   - After, hit `Esc`, then save the file changes with the following command:
+-  **Run the Streamlit App**:
+   - Execute the following command while in the ***streamlit_app*** directory:
      ```bash
-     :wq!
-     ```   
-
-   - Now, start the streamlit app by running the following command:
-     ```bash
-     streamlit run app/streamlit_app/app.py
-  
-   - You should see an external URL. Copy & paste the URL into a web browser to start the streamlit application.
-
-![External IP](images/external_ip.png)
-
-
+     streamlit run app.py
+     ```
+![Diagram](images/6c.png) 
+     
    - Once the app is running, please test some of the sample prompts provided. (On 1st try, if you receive an error, try again.)
 
-![Running App ](images/running_app.png)
+![Running App ](streamlit_app/images/running_app.png)
 
-Optionally, you can review the trace events in the left toggle of the screen. This data will include the rational tracing, invocation input tracing, and observation tracing.
 
-![Trace events ](images/trace_events.png)
+   - Optionally, you can review the [trace events](https://docs.aws.amazon.com/bedrock/latest/userguide/trace-events.html) in the left toggle of the screen. This data will include the **Preprocessing, Orchestration**, and **PostProcessing** traces.
+
 
 
 ## Cleanup
