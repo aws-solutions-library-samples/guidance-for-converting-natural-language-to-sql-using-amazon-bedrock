@@ -665,7 +665,7 @@ Here are examples of Amazon Athena queries <athena_examples>.
 - Once downloaded, unzip the file.
 - Open up the project in your IDE of choice. For this project, we will be using [Visual Studio code](https://code.visualstudio.com/docs/sourcecontrol/intro-to-git). Please review the code briefly.
 
-- You will need to have an ***agent ID***, along with the ***agent alias ID*** for this step. Go to the Bedrock management console, then select the agent. Copy the ***Agent ID*** from the top-right of the **Agent overview** section. Then, scroll down to **Aliases** and select ***Create***. Name the alias `a1`, then create the agent. Remeber to save the ***Alias ID*** generated, **NOT** the alias name.
+- You will need to have an ***agent ID***, along with the ***agent alias ID*** for this step. Go to the Bedrock management console, then select the agent. Copy the ***Agent ID*** from the top-right of the **Agent overview** section. Then, scroll down to **Aliases** and select ***Create***. Name the alias `a1`, then create the agent. Remember to save the ***Alias ID*** generated, **NOT** the alias name.
 ![Diagram](images/6a.png) 
 - now, navigate back to the IDE you used to open up the project.
      
