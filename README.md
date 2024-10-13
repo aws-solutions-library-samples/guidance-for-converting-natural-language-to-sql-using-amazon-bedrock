@@ -696,7 +696,7 @@ Here are examples of Amazon Athena queries <athena_examples>.
      
    - Once the app is running, please test some of the sample prompts provided. (On 1st try, if you receive an error, try again.)
 
-![Running App ](streamlit_app/images/running_app.png)
+![Running App ](images/running_app.png)
 
 
    - Optionally, you can review the [trace events](https://docs.aws.amazon.com/bedrock/latest/userguide/trace-events.html) in the left toggle of the screen. This data will include the **Preprocessing, Orchestration**, and **PostProcessing** traces.
