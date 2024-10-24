@@ -102,8 +102,7 @@ Click here to download template 1 🚀 - [1 - Athena-Glue-S3 Stack](https://gith
 Click here to download template 2 🚀 - [2 - Agent-Lambda Stack](https://github.com/build-on-aws/bedrock-agent-txt2sql/blob/main/cfn/2-bedrock-agent-lambda-template.yaml) 
 - This next template will create an Amazon bedrock agent, action group, with an associated Lambda function.
 
-Click here to download template 3 🚀 - [3 - EC2 UI Stack](https://github.com/build-on-aws/bedrock-agent-txt2sql/blob/main/cfn/3-ec2-streamlit-template.yaml)
-- This template will be used to deploy an EC2 instance that will run the code for the Streamlit UI.
+If a deployable, production ready frontend UI is desired, please follow our GAAB solution found [here](https://aws.amazon.com/solutions/implementations/generative-ai-application-builder-on-aws/).
 
 ***Step 2***
 
@@ -655,11 +654,9 @@ Here are examples of Amazon Athena queries <athena_examples>.
     4. Get me data of all procedures that were not insured, with customer names.
        
 
-***(If you would like to have a UI setup with this project, continue to step 7)***
+***(If you would like to run the Streamlit UI locally, continue to step 7)***
 
 ## Step 7: Setting up and running the Streamlit app locally
-
-### Step 1: Downloading the project and creating a lambda function using a Serverless approach
 
 - Download the sample project from [here](https://github.com/solutions-library-bedrock-agent-text2sql/archive/refs/heads/main.zip).
 - Once downloaded, unzip the file.
