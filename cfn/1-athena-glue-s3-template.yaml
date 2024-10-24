@@ -25,6 +25,20 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
 
+  CopyDataKMSKey:
+    Type: 'AWS::KMS::Key'
+    Properties:
+      Description: 'KMS key for encrypting SQS CopyDataDLQ queue'
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: 'kms:*'
+            Resource: '*'
+
   LoggingBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
@@ -36,18 +50,24 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName: !Ref AuditBucket
+        LogFilePrefix: 'logging-bucket-logs/'
 
-  ReplicationDestinationBucketResource:
+  AuditBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
-      BucketName: !Sub 'sl-replication-${Alias}-${AWS::AccountId}-${AWS::Region}'
+      BucketName: !Sub 'audit-bucket-${AWS::AccountId}-${AWS::Region}'
       AccessControl: Private
       VersioningConfiguration:
         Status: Enabled
+      ObjectLockEnabled: true  # Enable Object Lock for AuditBucket
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -57,6 +77,66 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
+      ObjectLockConfiguration:
+        ObjectLockEnabled: 'Enabled'  # Specify Object Lock configuration
+        Rule:
+          DefaultRetention:
+            Mode: COMPLIANCE  # Set retention mode (COMPLIANCE or GOVERNANCE)
+            Days: 30  # Example: Retain objects for 30 days by default
+      LoggingConfiguration:
+        DestinationBucketName: !Ref AuditLoggingBucket
+        LogFilePrefix: 'audit-logs/'
+
+  AuditLoggingBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub 'audit-logging-bucket-${AWS::AccountId}-${AWS::Region}'
+      AccessControl: Private
+      VersioningConfiguration:
+        Status: Enabled
+      ObjectLockEnabled: true  # Enable Object Lock for AuditLoggingBucket
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      ObjectLockConfiguration:
+        ObjectLockEnabled: 'Enabled'  # Specify Object Lock configuration
+        Rule:
+          DefaultRetention:
+            Mode: COMPLIANCE  # Set retention mode (COMPLIANCE or GOVERNANCE)
+            Days: 30  # Example: Retain objects for 30 days by default
+
+  ReplicationDestinationBucketResource:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub 'sl-replication-${Alias}-${AWS::AccountId}-${AWS::Region}'
+      AccessControl: Private
+      VersioningConfiguration:
+        Status: Enabled  # This ensures versioning is enabled for replication
+      ObjectLockEnabled: true  # Enable Object Lock
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LoggingBucket
+        LogFilePrefix: 'replication-destination-logs/'
+      ObjectLockConfiguration:
+        ObjectLockEnabled: 'Enabled'  # Specify Object Lock configuration
+        Rule:
+          DefaultRetention:
+            Mode: COMPLIANCE  # Set retention mode (COMPLIANCE or GOVERNANCE)
+            Days: 30  # Example: Retain objects for 30 days by default
 
   S3Bucket:
     Type: 'AWS::S3::Bucket'
@@ -115,6 +195,17 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
+
+  AthenaWorkGroup:
+    Type: 'AWS::Athena::WorkGroup'
+    DependsOn: AthenaOutputBucket
+    Properties:
+      Name: 'MyAthenaWorkGroup'
+      State: ENABLED
+      WorkGroupConfiguration:
+        ResultConfiguration:
+          OutputLocation: !Sub 's3://${AthenaOutputBucket}/'
+        EnforceWorkGroupConfiguration: true
 
   GlueDatabase:
     Type: 'AWS::Glue::Database'
@@ -204,6 +295,7 @@ Resources:
     Type: 'AWS::SQS::Queue'
     Properties:
       QueueName: !Sub "CopyDataDLQ-${AWS::StackName}-${AWS::Region}"
+      KmsMasterKeyId: !Ref CopyDataKMSKey
 
   CopyDataLambda:
     Type: 'AWS::Lambda::Function'
@@ -213,6 +305,7 @@ Resources:
       Runtime: python3.12
       MemorySize: 1024
       Timeout: 120
+      ReservedConcurrentExecutions: 3
       DeadLetterConfig:
         TargetArn: !GetAtt CopyDataDLQ.Arn
       Code:
