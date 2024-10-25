@@ -44,7 +44,7 @@ Resources:
     Properties:
       BucketName: !Sub 'logging-bucket-${AWS::AccountId}-${AWS::Region}'
       AccessControl: Private
-      ObjectLockEnabled: true
+      ObjectLockEnabled: false
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
