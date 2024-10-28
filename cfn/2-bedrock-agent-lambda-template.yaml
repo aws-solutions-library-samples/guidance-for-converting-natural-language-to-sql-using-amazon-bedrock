@@ -20,11 +20,97 @@ Resources:
             Principal:
               Service: lambda.amazonaws.com
             Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: AthenaS3AccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:*
+                  - s3-object-lambda:*
+                Resource:
+                  - !Sub 'arn:aws:s3:::sl-data-store-${AWS::AccountId}-*'
+                  - !Sub 'arn:aws:s3:::sl-athena-output-${AWS::AccountId}-*'
+        - PolicyName: AthenaQueryPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - athena:StartQueryExecution
+                  - athena:GetQueryResults
+                  - athena:GetWorkGroup
+                  - athena:StopQueryExecution
+                  - athena:GetQueryExecution
+                  - athena:ListWorkGroups
+                Resource: '*'
+        - PolicyName: GlueAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - glue:CreateDatabase
+                  - glue:DeleteDatabase
+                  - glue:GetDatabase
+                  - glue:GetDatabases
+                  - glue:UpdateDatabase
+                  - glue:CreateTable
+                  - glue:DeleteTable
+                  - glue:BatchDeleteTable
+                  - glue:UpdateTable
+                  - glue:GetTable
+                  - glue:GetTables
+                  - glue:BatchCreatePartition
+                  - glue:CreatePartition
+                  - glue:DeletePartition
+                  - glue:BatchDeletePartition
+                  - glue:UpdatePartition
+                  - glue:GetPartition
+                  - glue:GetPartitions
+                  - glue:BatchGetPartition
+                  - glue:StartColumnStatisticsTaskRun
+                  - glue:GetColumnStatisticsTaskRun
+                  - glue:GetColumnStatisticsTaskRuns
+                  - glue:GetCatalogImportStatus
+                Resource:
+                  - !Sub 'arn:aws:glue:${AWS::Region}:${AWS::AccountId}:catalog'
+                  - !Sub 'arn:aws:glue:${AWS::Region}:${AWS::AccountId}:database/athena_db'
+                  - !Sub 'arn:aws:glue:${AWS::Region}:${AWS::AccountId}:table/athena_db/*'
+        - PolicyName: LakeFormationPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: BaseLakeFormationPermissions
+                Effect: Allow
+                Action:
+                  - lakeformation:GetDataAccess
+                Resource: !Sub 'arn:aws:lakeformation:${AWS::Region}:${AWS::AccountId}:catalog:database/athena_db'
+        - PolicyName: DataZonePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: BaseDataZonePermissions
+                Effect: Allow
+                Action:
+                  - datazone:ListDomains
+                  - datazone:ListProjects
+                  - datazone:ListAccountEnvironments
+                Resource: !Sub 'arn:aws:datazone:${AWS::Region}:${AWS::AccountId}:domain/*'
+        - PolicyName: PricingPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: BasePricingPermissions
+                Effect: Allow
+                Action:
+                  - pricing:GetProducts
+                Resource: '*'  # Pricing service doesn't support resource-level permissions
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonAthenaFullAccess
-        - arn:aws:iam::aws:policy/AmazonS3FullAccess
         - !Ref CloudWatchLogsPolicy
-        - !Ref SQSSendMessagePolicy  # Reference to the new custom managed policy
+        - !Ref SQSSendMessagePolicy
+
 
   SQSSendMessagePolicy:
     Type: 'AWS::IAM::ManagedPolicy'
@@ -51,18 +137,46 @@ Resources:
             Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*:*"
 
   BedrockAgentExecutionRole:
-    Type: 'AWS::IAM::Role'
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: bedrock.amazonaws.com
-            Action: 'sts:AssumeRole'
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonBedrockFullAccess
-        - !Ref LambdaInvokePolicy
+      Type: 'AWS::IAM::Role'
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: bedrock.amazonaws.com
+              Action: 'sts:AssumeRole'
+              Condition:
+                StringEquals:
+                  aws:SourceAccount: !Ref 'AWS::AccountId'
+                ArnLike:
+                  AWS:SourceArn: !Sub 'arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:agent/*'
+        Policies:
+          - PolicyName: BedrockAgentMinimalAccess
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - "s3:*"
+                    - "s3-object-lambda:*"
+                  Resource: !Sub "arn:aws:s3:::sl-athena-output-${AWS::AccountId}-${AWS::Region}/"
+                - Sid: AmazonBedrockAgentBedrockFoundationModelPolicyProd
+                  Effect: Allow
+                  Action: bedrock:InvokeModel
+                  Resource:
+                    - "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-instant-v1"
+                    - "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
+                    - "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0"
+                    - "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1:0"
+                - Effect: Allow
+                  Action:
+                    - lambda:InvokeFunction
+                  Resource: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:AthenaQueryLambda-${AWS::AccountId}'
+        ManagedPolicyArns:
+          - !Ref LambdaInvokePolicy
+
+
 
   LambdaInvokePolicy:
     Type: 'AWS::IAM::ManagedPolicy'
@@ -74,7 +188,6 @@ Resources:
             Action:
               - 'lambda:InvokeFunction'
             Resource: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:AthenaQueryLambda-${AWS::AccountId}'
-
 
   AthenaQueryLambdaDLQ:
     Type: 'AWS::SQS::Queue'
