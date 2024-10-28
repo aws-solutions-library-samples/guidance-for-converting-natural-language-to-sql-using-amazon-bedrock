@@ -110,7 +110,7 @@ Resources:
         TargetArn: !GetAtt AthenaQueryLambdaDLQ.Arn
       Environment:
         Variables:
-          S3Output: !Sub "s3://sl-athena-output-${Alias}-${AWS::AccountId}-${AWS::Region}/"
+          S3Output: !Sub "s3://sl-athena-output-${AWS::AccountId}-${AWS::Region}/"
       Code:
         ZipFile: |
           import boto3
