@@ -114,7 +114,7 @@ Resources:
   ReplicationDestinationBucketResource:
     Type: 'AWS::S3::Bucket'
     Properties:
-      BucketName: !Sub 'sl-replication-${Alias}-${AWS::AccountId}-${AWS::Region}'
+      BucketName: !Sub 'sl-replication-${AWS::AccountId}-${AWS::Region}'
       AccessControl: Private
       VersioningConfiguration:
         Status: Enabled  # This ensures versioning is enabled for replication
@@ -141,7 +141,7 @@ Resources:
   S3Bucket:
     Type: 'AWS::S3::Bucket'
     Properties:
-      BucketName: !Sub 'sl-data-store-${Alias}-${AWS::AccountId}-${AWS::Region}'
+      BucketName: !Sub 'sl-data-store-${AWS::AccountId}-${AWS::Region}'
       AccessControl: Private
       LoggingConfiguration:
         DestinationBucketName: !Ref LoggingBucket
