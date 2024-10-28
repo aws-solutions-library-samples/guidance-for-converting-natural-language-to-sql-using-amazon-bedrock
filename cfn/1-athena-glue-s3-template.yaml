@@ -170,7 +170,7 @@ Resources:
   AthenaOutputBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
-      BucketName: !Sub 'sl-athena-output-${Alias}-${AWS::AccountId}-${AWS::Region}'
+      BucketName: !Sub 'sl-athena-output-${AWS::AccountId}-${AWS::Region}'
       AccessControl: Private
       LoggingConfiguration:
         DestinationBucketName: !Ref LoggingBucket
