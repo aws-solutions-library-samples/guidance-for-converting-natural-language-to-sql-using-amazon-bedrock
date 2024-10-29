@@ -658,7 +658,7 @@ Here are examples of Amazon Athena queries <athena_examples>.
 
 ## Step 7: Setting up and running the Streamlit app locally
 
-- Download the sample project from [here](https://github.com/solutions-library-bedrock-agent-text2sql/archive/refs/heads/main.zip).
+- Download the sample project from [here](https://github.com/build-on-aws/solutions-library-bedrock-agent-text2sql/archive/refs/heads/main.zip).
 - Once downloaded, unzip the file.
 - Open up the project in your IDE of choice. For this project, we will be using [Visual Studio code](https://code.visualstudio.com/docs/sourcecontrol/intro-to-git). Please review the code briefly.
 
