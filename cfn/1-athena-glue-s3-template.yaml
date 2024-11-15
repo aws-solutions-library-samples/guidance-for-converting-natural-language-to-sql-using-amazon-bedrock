@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  AWS CloudFormation template to create Athena resources with AWS Glue, S3 buckets, and data copy from specified URLs
+  Solution ID - SO9564 AWS. Guidance for retrieving data using natural language queries on AWS.
 
 Parameters:
   AthenaDatabaseName:
